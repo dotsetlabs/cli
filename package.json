@@ -1,0 +1,50 @@
+{
+    "name": "@dotsetlabs/cli",
+    "version": "1.0.0",
+    "description": "The unified CLI for the dotset labs platform. Single package for Axion (secrets), Gluon (telemetry), and Tachyon (tunnels).",
+    "type": "module",
+    "bin": {
+        "dotset": "./bin/dotset.js"
+    },
+    "files": [
+        "bin",
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md"
+    ],
+    "scripts": {
+        "test": "echo 'Wrapper package - tests are in individual CLIs'",
+        "prepublishOnly": "npm pack --dry-run"
+    },
+    "keywords": [
+        "dotset",
+        "cli",
+        "developer-tools",
+        "platform",
+        "axion",
+        "secrets",
+        "gluon",
+        "telemetry",
+        "tachyon",
+        "tunnels",
+        "security"
+    ],
+    "author": "dotset labs <hello@dotsetlabs.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dotsetlabs/cli.git"
+    },
+    "bugs": {
+        "url": "https://github.com/dotsetlabs/cli/issues"
+    },
+    "homepage": "https://dotsetlabs.com",
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "dependencies": {
+        "@dotsetlabs/axion": "^1.0.0",
+        "@dotsetlabs/gluon": "^1.0.0",
+        "@dotsetlabs/tachyon": "^1.0.0"
+    }
+}
