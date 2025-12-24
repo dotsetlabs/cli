@@ -1,7 +1,7 @@
 # @dotsetlabs/cli
 
 **The unified developer platform CLI.**  
-One package for secrets, telemetry, and tunnels.
+One package for secrets, security, and tunnels.
 
 [![npm version](https://img.shields.io/npm/v/@dotsetlabs/cli)](https://www.npmjs.com/package/@dotsetlabs/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -12,9 +12,9 @@ The dotset CLI bundles three powerful developer tools:
 
 | Tool | Command | Description |
 |:-----|:--------|:------------|
-| **Axion** | `dotset axion` / `axn` | Zero-knowledge secrets management |
-| **Gluon** | `dotset gluon` / `gln` | Runtime security telemetry |
-| **Tachyon** | `dotset tachyon` / `tcn` | Zero-trust localhost tunnels |
+| **Axion** | `axn` | Zero-knowledge secrets management |
+| **Gluon** | `gln` | Runtime security telemetry |
+| **Tachyon** | `tcn` | Zero-trust localhost tunnels |
 
 ## Installation
 
@@ -31,80 +31,97 @@ npm install -g @dotsetlabs/tachyon # Just tunnels
 
 ## Quick Start
 
-### Axion — Secrets Management
+### Initialize a Multi-Product Project
 
 ```bash
-# Sign in
-dotset axion login
+# Interactive product selection
+dotset init
 
-# Initialize a project
-dotset axion init --cloud --name "my-app"
-
-# Add secrets
-dotset axion set DATABASE_URL "postgres://..."
-dotset axion set API_KEY "sk-12345"
-
-# Run with secrets injected
-dotset axion run -- npm start
+# Or specify products directly
+dotset init --axion --gluon --tachyon
 ```
 
-### Gluon — Runtime Telemetry
+This creates a unified `.dotset/` directory with configurations for each enabled product.
+
+### Unified Authentication
 
 ```bash
-# Initialize monitoring
-dotset gluon init
+# Login once, authenticated across all products
+dotset login
 
-# Run with telemetry
-dotset gluon run -- npm start
+# Check status
+dotset status
 
-# View captured telemetry
-dotset gluon logs
-dotset gluon analyze
+# Logout
+dotset logout
 ```
 
-### Tachyon — Secure Tunnels
+### Use Individual Products
+
+The unified CLI routes to product CLIs:
 
 ```bash
-# Sign in
-dotset tachyon login
+# Axion — Secrets
+dotset axn set DATABASE_URL "postgres://..."
+dotset axn run -- npm start
 
-# Share a local port
-dotset tachyon share 3000
+# Gluon — Security Telemetry
+dotset gln run -- npm start
 
-# With custom subdomain
-dotset tachyon share 3000 --subdomain my-api
+# Tachyon — Tunnels
+dotset tcn share 3000
+```
+
+Or use the direct commands (installed with individual packages):
+
+```bash
+axn set DATABASE_URL "postgres://..."
+gln run -- npm start
+tcn share 3000
 ```
 
 ## Commands
 
-### Using the Unified CLI
+### Unified Commands
 
-```bash
-dotset <product> <command> [options]
+| Command | Description |
+|:--------|:------------|
+| `dotset init` | Initialize a project with selected products |
+| `dotset login` | Authenticate with dotset labs cloud |
+| `dotset logout` | Clear credentials |
+| `dotset status` | Show project and auth status |
 
-# Examples
-dotset axion init
-dotset gluon run -- npm start
-dotset tachyon share 8080
+### Product Routing
+
+| Command | Routes To |
+|:--------|:----------|
+| `dotset axn <cmd>` | `axn <cmd>` (Axion CLI) |
+| `dotset gln <cmd>` | `gln <cmd>` (Gluon CLI) |
+| `dotset tcn <cmd>` | `tcn <cmd>` (Tachyon CLI) |
+| `dotset axion <cmd>` | `axn <cmd>` (Axion CLI) |
+| `dotset gluon <cmd>` | `gln <cmd>` (Gluon CLI) |
+| `dotset tachyon <cmd>` | `tcn <cmd>` (Tachyon CLI) |
+
+## Project Structure
+
+When you run `dotset init`, it creates:
+
 ```
+.dotset/
+├── project.yaml        # Shared project configuration
+├── axion/              # Axion secrets data (if enabled)
+│   ├── manifest.enc    # Encrypted secrets
+│   ├── key             # Encryption key
+│   └── local.env       # Local overrides
+├── gluon/              # Gluon telemetry data (if enabled)
+│   ├── config.yaml     # Monitoring rules
+│   └── telemetry.log   # Event log
+└── tachyon/            # Tachyon tunnel data (if enabled)
+    ├── config.yaml     # Tunnel config
+    └── state.json      # Active tunnels
 
-### Direct Commands (Aliases)
-
-Each product has a short alias for direct use:
-
-```bash
-axn init                    # Same as: dotset axion init
-gln run -- npm start        # Same as: dotset gluon run -- npm start
-tcn share 3000              # Same as: dotset tachyon share 3000
-```
-
-### Help
-
-```bash
-dotset --help               # Show unified CLI help
-dotset axion --help         # Axion-specific help
-dotset gluon --help         # Gluon-specific help
-dotset tachyon --help       # Tachyon-specific help
+~/.dotset/
+└── credentials.yaml    # Unified auth for all CLIs
 ```
 
 ## Why Use This Package?
@@ -112,9 +129,9 @@ dotset tachyon --help       # Tachyon-specific help
 | Benefit | Description |
 |:--------|:------------|
 | **Single Install** | One `npm install` for all three tools |
-| **Consistent Versioning** | All tools are tested together |
-| **Unified Entry Point** | `dotset` as the single command |
-| **Still Flexible** | Direct aliases (`axn`, `gln`, `tcn`) still work |
+| **Unified Init** | Set up multiple products at once |
+| **Shared Auth** | Login once, use everywhere |
+| **Consistent Versioning** | All tools tested together |
 
 ## Individual Packages
 
@@ -135,6 +152,6 @@ MIT
 ## Links
 
 - [dotset labs](https://dotsetlabs.com) — Company website
-- [Axion Docs](https://dotsetlabs.com/axion/docs) — Secrets management documentation
-- [Gluon Docs](https://dotsetlabs.com/gluon/docs) — Telemetry documentation
-- [Tachyon Docs](https://dotsetlabs.com/tachyon/docs) — Tunnel documentation
+- [Axion Docs](https://dotsetlabs.com/axion) — Secrets management
+- [Gluon Docs](https://dotsetlabs.com/gluon) — Security telemetry
+- [Tachyon Docs](https://dotsetlabs.com/tachyon) — Secure tunnels
