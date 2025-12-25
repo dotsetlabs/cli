@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # CLI depends on sibling packages, set up workspace dependencies
+      # CLI depends on sibling packages via file: references
       - name: Clone workspace dependencies
         run: |
           cd ..
@@ -31,17 +31,26 @@ jobs:
           git clone --depth 1 https://github.com/dotsetlabs/gluon.git
           git clone --depth 1 https://github.com/dotsetlabs/tachyon.git
 
-      - name: Install and build dependencies
-        run: |
-          cd ../core && npm install && npm run build
-          cd ../axion && npm install && npm run build
-          cd ../gluon && npm install && npm run build
-          cd ../tachyon && npm install && npm run build
+      - name: Build @dotsetlabs/core
+        working-directory: ../core
+        run: npm install && npm run build
+
+      - name: Build @dotsetlabs/axion
+        working-directory: ../axion
+        run: npm install && npm run build
+
+      - name: Build @dotsetlabs/gluon
+        working-directory: ../gluon
+        run: npm install && npm run build
+
+      - name: Build @dotsetlabs/tachyon
+        working-directory: ../tachyon
+        run: npm install && npm run build
 
       - name: Install CLI dependencies
         run: npm install
 
-      - name: Build
+      - name: Build CLI
         run: npm run build
 
       - name: Verify CLI
