@@ -1,11 +1,18 @@
 {
     "name": "@dotsetlabs/cli",
     "version": "1.0.0",
-    "description": "The unified CLI for the dotset labs platform. Single package for Axion (secrets), Gluon (security), and Tachyon (tunnels).",
+    "description": "The dotset Developer Platform CLI. Secrets, security, and tunnels in one unified command.",
     "type": "module",
-    "main": "./dist/cli.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "bin": {
         "dotset": "./dist/cli.js"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
     },
     "files": [
         "dist",
@@ -27,11 +34,8 @@
         "cli",
         "developer-tools",
         "platform",
-        "axion",
         "secrets",
-        "gluon",
         "security",
-        "tachyon",
         "tunnels"
     ],
     "author": "dotset labs <hello@dotsetlabs.com>",
@@ -51,6 +55,7 @@
         "@dotsetlabs/core": "file:../core",
         "@dotsetlabs/axion": "file:../axion",
         "@dotsetlabs/gluon": "file:../gluon",
+        "@dotsetlabs/tachyon": "file:../tachyon",
         "commander": "^12.1.0"
     },
     "devDependencies": {

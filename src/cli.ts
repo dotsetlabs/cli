@@ -1,17 +1,23 @@
 #!/usr/bin/env node
 /**
- * Dotset Labs Unified CLI
+ * dotset - The Secure Developer Runtime
  * 
- * Single entry point for the dotset ecosystem.
- * Provides unified commands plus routing to product-specific CLIs.
+ * Unified CLI for the dotset labs platform.
+ * Combines secrets management, runtime security, and secure tunnels.
  */
 
 import { Command } from 'commander';
 import { registerInitCommand } from './commands/init.js';
 import { registerAuthCommands } from './commands/auth.js';
 import { registerStatusCommand } from './commands/status.js';
-import { registerProductCommands } from './commands/products.js';
 import { registerRunCommand } from './commands/run.js';
+import { registerSecretsCommands } from './commands/secrets.js';
+import { registerSecurityCommands } from './commands/security.js';
+import { registerTunnelCommands } from './commands/tunnel.js';
+import { registerSyncCommands } from './commands/sync.js';
+import { registerDriftCommand } from './commands/drift.js';
+import { registerProjectCommands } from './commands/project.js';
+import { registerWebhooksCommand } from './commands/webhooks.js';
 
 const VERSION = '1.0.0';
 
@@ -23,21 +29,48 @@ const program = new Command();
 
 program
     .name('dotset')
-    .description('The unified CLI for dotset labs. Secrets, Security, and Tunnels.')
+    .description('The Secure Developer Runtime — secrets, security, and tunnels in one CLI.')
     .version(VERSION);
 
 // ─────────────────────────────────────────────────────────────
-// Register Commands
+// Core Commands
 // ─────────────────────────────────────────────────────────────
 
 registerInitCommand(program);
 registerAuthCommands(program);
 registerStatusCommand(program);
 registerRunCommand(program);
-registerProductCommands(program);
+
+// ─────────────────────────────────────────────────────────────
+// Secrets Module (Axion)
+// ─────────────────────────────────────────────────────────────
+
+registerSecretsCommands(program);
+registerSyncCommands(program);
+registerDriftCommand(program);
+
+// ─────────────────────────────────────────────────────────────
+// Security Module (Gluon)
+// ─────────────────────────────────────────────────────────────
+
+registerSecurityCommands(program);
+
+// ─────────────────────────────────────────────────────────────
+// Tunnels Module (Tachyon)
+// ─────────────────────────────────────────────────────────────
+
+registerTunnelCommands(program);
+registerWebhooksCommand(program);
+
+// ─────────────────────────────────────────────────────────────
+// Project Management
+// ─────────────────────────────────────────────────────────────
+
+registerProjectCommands(program);
 
 // ─────────────────────────────────────────────────────────────
 // Parse
 // ─────────────────────────────────────────────────────────────
 
 program.parse(process.argv);
+

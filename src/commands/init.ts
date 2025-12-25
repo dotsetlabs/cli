@@ -7,8 +7,6 @@ import {
     linkToCloud,
     createCloudProject,
     isAuthenticated,
-    isProductInstalled,
-    getInstallCommand,
     type ProductKey,
     COLORS,
     colors,
@@ -84,19 +82,7 @@ export function registerInitCommand(program: Command) {
                 if (products.gluon) console.log(`  ${colors.gluon('●')} Gluon - ${PRODUCT_DESCRIPTIONS.gluon}`);
                 if (products.tachyon) console.log(`  ${colors.tachyon('●')} Tachyon - ${PRODUCT_DESCRIPTIONS.tachyon}`);
 
-                // Check if product CLIs are installed
-                const missingProducts: ProductKey[] = [];
-                for (const [product, enabled] of Object.entries(products)) {
-                    if (enabled && !isProductInstalled(product as ProductKey)) {
-                        missingProducts.push(product as ProductKey);
-                    }
-                }
 
-                if (missingProducts.length > 0) {
-                    console.log();
-                    warn(`Missing CLI tools: ${missingProducts.join(', ')}`);
-                    console.log(`  Install: ${colors.cyan(getInstallCommand(missingProducts))}`);
-                }
 
                 // Create cloud project if requested
                 if (options.cloud) {
@@ -124,13 +110,13 @@ export function registerInitCommand(program: Command) {
                 console.log();
                 console.log(colors.bold('Next steps:'));
                 if (products.axion) {
-                    console.log(`  ${colors.dim('1.')} Run ${colors.cyan('axn set KEY value')} to add secrets`);
+                    console.log(`  ${colors.dim('1.')} Run ${colors.cyan('dotset secrets set KEY value')} to add secrets`);
                 }
                 if (products.gluon) {
-                    console.log(`  ${colors.dim(products.axion ? '2.' : '1.')} Run ${colors.cyan('gln run -- npm start')} to monitor`);
+                    console.log(`  ${colors.dim(products.axion ? '2.' : '1.')} Run ${colors.cyan('dotset run -- npm start')} to monitor`);
                 }
                 if (products.tachyon) {
-                    console.log(`  ${colors.dim('•')} Run ${colors.cyan('tcn share 3000')} to create a tunnel`);
+                    console.log(`  ${colors.dim('•')} Run ${colors.cyan('dotset share 3000')} to create a tunnel`);
                 }
                 console.log();
                 console.log(colors.yellow('Important:'));
