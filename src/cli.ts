@@ -11,6 +11,7 @@ import { registerInitCommand } from './commands/init.js';
 import { registerAuthCommands } from './commands/auth.js';
 import { registerStatusCommand } from './commands/status.js';
 import { registerProductCommands } from './commands/products.js';
+import { registerRunCommand } from './commands/run.js';
 
 const VERSION = '1.0.0';
 
@@ -32,6 +33,7 @@ program
 registerInitCommand(program);
 registerAuthCommands(program);
 registerStatusCommand(program);
+registerRunCommand(program);
 registerProductCommands(program);
 
 // ─────────────────────────────────────────────────────────────
