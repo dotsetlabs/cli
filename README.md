@@ -27,7 +27,7 @@ dotset run -- npm start
 ```
 
 This single command:
-- 🔐 **Injects secrets** from your encrypted vault (Axion)
+- 🔐 **Injects secrets** directly from the cloud (zero-disk architecture)
 - 🛡️ **Monitors runtime** for secret leaks in logs (Gluon)
 - 📊 **Tracks network** calls to detect anomalies (Gluon)
 

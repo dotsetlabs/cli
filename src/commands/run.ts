@@ -142,7 +142,52 @@ async function runUnified(commandArgs: string[], options: RunOptions): Promise<v
             if (isAxionInit) {
                 axionAvailable = true;
                 const serviceKey = service ?? GLOBAL_SERVICE;
-                secretVars = await manifest.getVariables(serviceKey, scope);
+
+                // Attempt to load key from file first (local dev)
+                let encryptionKey: string | undefined;
+                try {
+                    // This is hacky but we need to check if we can read the key
+                    await manifest.showKey();
+                } catch {
+                    // Key not found locally, try to fetch from platform if linked
+                    const { getAccessToken, getApiUrl } = await import('@dotsetlabs/core');
+                    const { readFile } = await import('node:fs/promises');
+                    const { join } = await import('node:path');
+
+                    try {
+                        const projectConfigPath = join(process.cwd(), '.dotset/project.json');
+                        const projectConfig = JSON.parse(await readFile(projectConfigPath, 'utf8'));
+
+                        if (projectConfig.projectId) {
+                            const token = getAccessToken();
+                            if (token) {
+                                const API_URL = getApiUrl();
+                                const res = await fetch(`${API_URL}/projects/${projectConfig.projectId}/axion/keys?scope=${scope}`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
+
+                                if (res.ok) {
+                                    const data = await res.json() as { key: string };
+                                    encryptionKey = data.key;
+                                    // Re-initialize manifest with injected key
+                                    // We need to create a new instance because the previous one failed to load key
+                                    // This logic actually needs to be handled by creating a NEW ManifestManager with the key
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Ignore, just means we can't fetch key
+                        if (verbose) warn(`Could not fetch remote key: ${(e as Error).message}`);
+                    }
+                }
+
+                if (encryptionKey) {
+                    // create new manager with key
+                    const remoteManifest = new ManifestManager({ encryptionKey });
+                    secretVars = await remoteManifest.getVariables(serviceKey, scope);
+                } else {
+                    secretVars = await manifest.getVariables(serviceKey, scope);
+                }
 
                 if (!quiet) {
                     const count = Object.keys(secretVars).length;
@@ -187,6 +232,7 @@ async function runUnified(commandArgs: string[], options: RunOptions): Promise<v
             // Create telemetry collector
             const sessionId = generateSessionId();
             telemetry = createCollector(gluonConfig.telemetry, sessionId);
+            telemetry.setScope(scope);
 
             // Create hook manager
             hookManager = createHookManager();

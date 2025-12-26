@@ -13,8 +13,9 @@ import {
     error,
     info,
     isAuthenticated,
-    getAccessToken,
-    getApiUrl,
+    loadProjectConfig,
+    post,
+    get,
 } from '@dotsetlabs/core';
 
 import {
@@ -46,8 +47,39 @@ export function registerSyncCommands(program: Command) {
                     error('Not logged in. Run: dotset login');
                 }
 
-                const manifest = new ManifestManager();
                 const scope = validateScope(options.scope);
+
+                // 1. Fetch key for the scope (if not present locally)
+                let encryptionKey: string | undefined;
+                let manifest: ManifestManager;
+
+                const projectConfig = loadProjectConfig();
+                if (!projectConfig?.cloudProjectId) {
+                    // For local-only usage or if just migrating files without link
+                    if (!file) {
+                        error('Project not linked to cloud. Run: dotset project link');
+                        return;
+                    }
+                    // If migrating local file, we might not need remote link if we have local key
+                    manifest = new ManifestManager();
+                } else {
+                    try {
+                        const token = (await import('@dotsetlabs/core')).getAccessToken();
+                        const API_URL = (await import('@dotsetlabs/core')).getApiUrl();
+                        const res = await fetch(`${API_URL}/projects/${projectConfig.cloudProjectId}/axion/keys?scope=${scope}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+
+                        // If we can get the key, use it. If not (e.g. key doesn't exist yet/not init), we'll try local.
+                        // For push, we might be initializing. Use file-based key if remote fails.
+                        if (res.ok) {
+                            const data = await res.json() as { key: string };
+                            encryptionKey = data.key;
+                        }
+                    } catch { /* ignore fetch error */ }
+
+                    manifest = new ManifestManager(encryptionKey ? { encryptionKey } : undefined);
+                }
 
                 if (file) {
                     // Migration Mode: Import from .env file
@@ -69,6 +101,11 @@ export function registerSyncCommands(program: Command) {
                     }
 
                     let imported = 0;
+                    // Note: If remote key fetch failed and local key missing, this will throw "Axion not initialized"
+                    // User must run "axn init" or similar if entirely local.
+                    // Or if first push to cloud, how do we get key? 
+                    // GET /keys creates it if missing for owner. So fetch above should have returned it.
+
                     const existing = await manifest.getVariables(GLOBAL_SERVICE, scope);
 
                     for (const { key, value } of result.variables) {
@@ -82,12 +119,32 @@ export function registerSyncCommands(program: Command) {
                     success(`Migrated ${imported} variables to ${scope} scope.`);
                 } else {
                     // Normal Push: Sync manifest to cloud
-                    info('Syncing manifest to cloud...');
+                    if (!projectConfig?.cloudProjectId) {
+                        error('Project not linked to cloud. Run: dotset project link');
+                        return;
+                    }
 
-                    const currentManifest = await manifest.load();
-                    await manifest.save(currentManifest);
+                    info(`Pushing [${scope}] manifest to cloud...`);
 
-                    success('Manifest synced to cloud.');
+                    const currentManifest = await manifest.load(scope);
+                    const path = manifest.getScopedManifestPath(scope);
+                    const encryptedData = await readFile(path, 'utf8');
+                    const keyFingerprint = await manifest.getFingerprint();
+
+                    try {
+                        await post(`/projects/${projectConfig.cloudProjectId}/axion/manifest`, {
+                            encryptedData,
+                            keyFingerprint,
+                            scope
+                        });
+                        success(`Manifest for [${scope}] synced to cloud.`);
+                    } catch (err: any) {
+                        if (err.status === 403) {
+                            error(`Permission Denied: ${err.message || 'You do not have access to push to this scope.'}`);
+                        } else {
+                            throw err;
+                        }
+                    }
                 }
             } catch (err) {
                 error((err as Error).message);
@@ -109,16 +166,54 @@ export function registerSyncCommands(program: Command) {
                     error('Not logged in. Run: dotset login');
                 }
 
-                const manifest = new ManifestManager();
                 const scope = validateScope(options.scope);
+                const projectConfig = loadProjectConfig();
+                if (!projectConfig?.cloudProjectId) {
+                    error('Project not linked to cloud. Run: dotset project link');
+                    return;
+                }
 
-                info(`Pulling secrets from cloud for ${scope}...`);
+                info(`Pulling secrets from cloud for [${scope}]...`);
 
-                // Reload manifest which will sync with cloud if linked
-                const currentManifest = await manifest.load();
-                await manifest.save(currentManifest);
+                try {
+                    // Fetch key first
+                    let encryptionKey: string | undefined;
+                    try {
+                        const token = (await import('@dotsetlabs/core')).getAccessToken();
+                        const API_URL = (await import('@dotsetlabs/core')).getApiUrl();
+                        const res = await fetch(`${API_URL}/projects/${projectConfig.cloudProjectId}/axion/keys?scope=${scope}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json() as { key: string };
+                            encryptionKey = data.key;
+                        }
+                    } catch { /* ignore */ }
 
-                success(`Secrets synchronized for ${scope} scope.`);
+                    const manifest = new ManifestManager(encryptionKey ? { encryptionKey } : undefined);
+
+                    const response = await get<{ manifest: { encryptedData: string } }>(
+                        `/projects/${projectConfig.cloudProjectId}/axion/manifest?scope=${scope}`
+                    );
+
+                    // Save the encrypted data locally
+                    const { mkdir, writeFile } = await import('node:fs/promises');
+                    const { dirname } = await import('node:path');
+                    const path = manifest.getScopedManifestPath(scope);
+
+                    await mkdir(dirname(path), { recursive: true });
+                    await writeFile(path, response.manifest.encryptedData, 'utf8');
+
+                    success(`Secrets synchronized for [${scope}] scope.`);
+                } catch (err: any) {
+                    if (err.status === 403) {
+                        error(`Permission Denied: ${err.message || 'You do not have access to pull from this scope.'}`);
+                    } else if (err.code === 'NO_MANIFEST') {
+                        info(`No manifest found in cloud for [${scope}].`);
+                    } else {
+                        throw err;
+                    }
+                }
             } catch (err) {
                 error((err as Error).message);
             }
@@ -138,10 +233,11 @@ export function registerSyncCommands(program: Command) {
                 }
 
                 const manifest = new ManifestManager();
+                const scope = 'development'; // Default scope for status or we could iterate
 
                 info('Checking sync status...');
 
-                const drift = await manifest.detectDrift();
+                const drift = await manifest.detectDrift(undefined, scope);
 
                 console.log();
 
@@ -154,7 +250,7 @@ export function registerSyncCommands(program: Command) {
                     console.log(`  ${colors.red(`- ${drift.summary.removed} removed`)}`);
                     console.log(`  ${colors.yellow(`~ ${drift.summary.changed} modified`)}`);
                     console.log();
-                    console.log(colors.dim('Run "dotset sync push" or "dotset sync pull" to resolve.'));
+                    console.log(COLORS.dim + 'Run "dotset sync push" or "dotset sync pull" to resolve.' + COLORS.reset);
                 }
 
                 console.log();

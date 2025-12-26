@@ -156,10 +156,14 @@ export function registerTunnelCommands(program: Command) {
                 // Keep process alive
                 await new Promise(() => { });
 
-            } catch (err) {
+            } catch (err: any) {
                 // Clean up on error
                 if (inspector) await inspector.stop().catch(() => { });
                 if (tunnelClient) await tunnelClient.close().catch(() => { });
+
+                if (err.status === 403) {
+                    error(`Permission denied: ${err.message || 'You do not have permission to create this tunnel.'}`);
+                }
                 error((err as Error).message);
             }
         });

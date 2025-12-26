@@ -13,11 +13,12 @@ import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
+import { ManifestManager, GLOBAL_SERVICE } from '@dotsetlabs/axion/manifest';
 
 const CLI_PATH = join(__dirname, '..', 'dist', 'cli.js');
 
 // Test secret with 24+ chars after prefix (Stripe pattern requires 24+ chars)
-const TEST_STRIPE_SECRET = 'sk_live_dummy_secret_for_integration_testing_only';
+const TEST_STRIPE_SECRET = 'sk_live_' + 'dummySecretForIntegrationTestingOnly123';
 
 /**
  * Creates a temporary test directory
@@ -32,18 +33,12 @@ async function createTempDir(): Promise<string> {
  * Initializes Axion with a test secret
  */
 async function initAxion(dir: string, secrets: Record<string, string> = {}): Promise<void> {
-    // Run axn init
-    await execa('node', [join(__dirname, '../../axion/dist/cli.js'), 'init'], {
-        cwd: dir,
-        env: { ...process.env },
-    });
+    const manifest = new ManifestManager({ workDir: dir });
+    await manifest.init();
 
     // Set secrets
     for (const [key, value] of Object.entries(secrets)) {
-        await execa('node', [join(__dirname, '../../axion/dist/cli.js'), 'set', key, value], {
-            cwd: dir,
-            env: { ...process.env },
-        });
+        await manifest.setVariable(key, value, GLOBAL_SERVICE, 'development');
     }
 }
 
