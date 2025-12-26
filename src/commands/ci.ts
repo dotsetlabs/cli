@@ -32,13 +32,15 @@ import {
     discoverWorkflows,
     getRunnableSteps,
     getSkippedSteps,
+    loadConfig as loadHadronConfig,
+    executeJob,
+    printReport,
     type Workflow,
     type Job,
     type Step,
-} from '@dotsetlabs/hadron/parser';
-import { loadConfig as loadHadronConfig } from '@dotsetlabs/hadron/config';
-import { executeJob, type ExecutionOptions } from '@dotsetlabs/hadron/executor';
-import { printReport } from '@dotsetlabs/hadron/reporter';
+    type StepResult,
+    type ExecutionOptions,
+} from '@dotsetlabs/hadron';
 
 export function registerCICommand(program: Command) {
     program
@@ -104,7 +106,7 @@ export function registerCICommand(program: Command) {
 
                 if (workflow) {
                     // Find by name or filename
-                    const matchingPath = workflowPaths.find((p) =>
+                    const matchingPath = workflowPaths.find((p: string) =>
                         p.includes(workflow) || p.endsWith(`${workflow}.yml`) || p.endsWith(`${workflow}.yaml`)
                     );
 
@@ -238,7 +240,7 @@ export function registerCICommand(program: Command) {
                     config: hadronConfig,
                     stdoutTransform: hookManager.createStreamTransform('stdout'),
                     stderrTransform: hookManager.createStreamTransform('stderr'),
-                    onStepStart: (step, index) => {
+                    onStepStart: (step: Step, index: number) => {
                         if (options.verbose) {
                             console.log(`${COLORS.dim}[${index + 1}/${selectedJob.steps.length}]${COLORS.reset} ${step.name}`);
                         }
@@ -272,7 +274,7 @@ export function registerCICommand(program: Command) {
                                 durationMs: result.durationMs,
                                 exitCode: result.success ? 0 : 1,
                                 leaksDetected: result.totalSecretExposures ?? 0,
-                                steps: result.steps?.map((s, i: number) => ({
+                                steps: result.steps?.map((s: StepResult, i: number) => ({
                                     stepIndex: i,
                                     name: s.name,
                                     status: s.skipped ? 'skipped' : (s.exitCode === 0 ? 'success' : 'failed'),
