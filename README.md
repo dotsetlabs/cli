@@ -72,6 +72,14 @@ dotset share 3000 --public       # Allow unauthenticated access
 dotset tunnels                   # List active tunnels
 ```
 
+### CI (Hadron)
+
+```bash
+dotset ci --list                 # List available workflows
+dotset ci build test             # Run specific job
+dotset ci --sync                 # Sync results to cloud
+```
+
 ### Cloud Sync
 
 ```bash
