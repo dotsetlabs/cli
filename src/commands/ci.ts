@@ -13,6 +13,8 @@ import {
     error,
     info,
     warn,
+    loadProjectConfig,
+    post,
 } from '@dotsetlabs/core';
 import { ManifestManager, GLOBAL_SERVICE } from '@dotsetlabs/axion/manifest';
 import {
@@ -48,6 +50,7 @@ export function registerCICommand(program: Command) {
         .option('--list', 'List available workflows and jobs')
         .option('--mode <mode>', 'Secret protection mode: detect, redact, block')
         .option('-v, --verbose', 'Show detailed output')
+        .option('--sync', 'Sync run results to server')
         .action(async (workflow: string | undefined, job: string | undefined, options: {
             scope: string;
             service?: string;
@@ -55,6 +58,7 @@ export function registerCICommand(program: Command) {
             list?: boolean;
             mode?: SecretMode;
             verbose?: boolean;
+            sync?: boolean;
         }) => {
             try {
                 const cwd = process.cwd();
@@ -247,6 +251,49 @@ export function registerCICommand(program: Command) {
                 // Report results
                 // ───────────────────────────────────────────────
                 printReport(result, { verbose: !!options.verbose, colors: true });
+
+                // ───────────────────────────────────────────────
+                // Sync results to server (if --sync flag)
+                // ───────────────────────────────────────────────
+                if (options.sync) {
+                    try {
+                        const projectConfig = await loadProjectConfig();
+                        if (projectConfig?.cloudProjectId) {
+                            const runData = {
+                                externalRunId: generateSessionId(),
+                                workflowName: selectedWorkflow.filename,
+                                jobId: selectedJob.id,
+                                jobName: selectedJob.name,
+                                scope: options.scope,
+                                protectionMode: options.mode || 'detect',
+                                status: result.success ? 'success' : 'failed',
+                                startedAt: new Date().toISOString(),
+                                completedAt: new Date().toISOString(),
+                                durationMs: result.durationMs,
+                                exitCode: result.success ? 0 : 1,
+                                leaksDetected: result.totalSecretExposures ?? 0,
+                                steps: result.steps?.map((s, i: number) => ({
+                                    stepIndex: i,
+                                    name: s.name,
+                                    status: s.skipped ? 'skipped' : (s.exitCode === 0 ? 'success' : 'failed'),
+                                    durationMs: s.durationMs,
+                                    exitCode: s.exitCode,
+                                })),
+                            };
+
+                            await post(`/projects/${projectConfig.cloudProjectId}/hadron/runs`, runData);
+                            console.log(`${COLORS.green}✓${COLORS.reset} Run synced to dashboard`);
+                        } else {
+                            if (options.verbose) {
+                                warn('No cloud project linked. Run \'dotset init\' and \'dotset link\' to enable sync.');
+                            }
+                        }
+                    } catch (syncErr) {
+                        if (options.verbose) {
+                            warn(`Sync failed: ${(syncErr as Error).message}`);
+                        }
+                    }
+                }
 
                 // Flush telemetry
                 if (telemetry) {
