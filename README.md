@@ -106,6 +106,31 @@ dotset webhooks show <id>        # Show webhook details
 dotset webhooks replay <id>      # Replay a webhook
 ```
 
+### Team Management
+
+```bash
+dotset team list                 # List team members
+dotset team add <email>          # Add team member
+dotset team remove <email>       # Remove member
+dotset team update <email>       # Update roles/scopes
+```
+
+### Service Tokens
+
+```bash
+dotset tokens list               # List service tokens
+dotset tokens create <name>      # Create scoped token
+dotset tokens revoke <name>      # Revoke token
+```
+
+### Audit Logs
+
+```bash
+dotset audit                     # View audit logs
+dotset audit verify              # Verify log integrity
+dotset audit export              # Export logs (JSON/CSV)
+```
+
 ## Documentation
 
 Full documentation: [docs.dotsetlabs.com](https://docs.dotsetlabs.com)

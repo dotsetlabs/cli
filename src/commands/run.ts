@@ -21,6 +21,11 @@ import {
     COLORS,
     error,
     warn,
+    // RBAC permission utilities
+    loadProjectConfig,
+    canAccessScope,
+    PermissionDeniedError,
+    ensurePermissions,
 } from '@dotsetlabs/core';
 
 // Axion imports for secret management
@@ -125,6 +130,32 @@ async function runUnified(commandArgs: string[], options: RunOptions): Promise<v
     // Validate mode if provided
     if (mode && !['detect', 'redact', 'block'].includes(mode)) {
         error('Invalid mode. Must be one of: detect, redact, block');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // RBAC Permission Check
+    // ─────────────────────────────────────────────────────────────
+
+    try {
+        const projectConfig = loadProjectConfig();
+        if (projectConfig?.cloudProjectId) {
+            // Ensure permissions are loaded
+            await ensurePermissions();
+
+            // Check if user can access the requested scope
+            if (!canAccessScope(projectConfig.cloudProjectId, scope)) {
+                throw new PermissionDeniedError(
+                    `Access Denied: Your role does not have permission to access secrets in the [${scope}] scope.\n` +
+                    `Contact your project admin to request access.`
+                );
+            }
+        }
+    } catch (err: unknown) {
+        if (err instanceof PermissionDeniedError) {
+            error(err.message);
+        }
+        // If no project config or permission check fails silently, continue
+        // Server will enforce permissions anyway
     }
 
     // ─────────────────────────────────────────────────────────────

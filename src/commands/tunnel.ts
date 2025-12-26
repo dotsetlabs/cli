@@ -14,9 +14,12 @@ import {
     info,
     warn,
     isAuthenticated as coreIsAuthenticated,
-    getAccessToken as coreGetAccessToken,
-    getApiUrl,
     apiRequest,
+    // RBAC permission utilities
+    loadProjectConfig,
+    hasPermission,
+    ensurePermissions,
+    PermissionDeniedError,
 } from '@dotsetlabs/core';
 
 // Import Tachyon SDK
@@ -64,6 +67,34 @@ export function registerTunnelCommands(program: Command) {
                     warn('Not logged in. Creating public tunnel.');
                     console.log(`  Run ${colors.cyan('dotset login')} for authenticated tunnels.\n`);
                     options.public = true;
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // RBAC Permission Check for Public Tunnels
+                // ─────────────────────────────────────────────────────────────
+
+                if (options.public && isAuth) {
+                    try {
+                        const projectConfig = loadProjectConfig();
+                        const projectId = options.project || projectConfig?.cloudProjectId;
+
+                        if (projectId) {
+                            await ensurePermissions();
+
+                            // Check if user can create public tunnels
+                            if (!hasPermission(projectId, 'tachyon', 'create:public')) {
+                                throw new PermissionDeniedError(
+                                    'Access Denied: Your role does not have permission to create public tunnels.\n' +
+                                    'Only project owners and admins can expose services publicly.'
+                                );
+                            }
+                        }
+                    } catch (err: unknown) {
+                        if (err instanceof PermissionDeniedError) {
+                            error(err.message);
+                        }
+                        // Continue - server will enforce
+                    }
                 }
 
                 info(`Starting tunnel to localhost:${portNum}...`);

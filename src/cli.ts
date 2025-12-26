@@ -19,6 +19,8 @@ import { registerDriftCommand } from './commands/drift.js';
 import { registerProjectCommands } from './commands/project.js';
 import { registerWebhooksCommand } from './commands/webhooks.js';
 import { registerCICommand } from './commands/ci.js';
+import { registerTeamCommands } from './commands/team.js';
+import { registerAuditCommands } from './commands/audit.js';
 
 const VERSION = '1.0.0';
 
@@ -68,6 +70,13 @@ registerCICommand(program);
 
 registerTunnelCommands(program);
 registerWebhooksCommand(program);
+
+// ─────────────────────────────────────────────────────────────
+// Team Management (RBAC)
+// ─────────────────────────────────────────────────────────────
+
+registerTeamCommands(program);
+registerAuditCommands(program);
 
 // ─────────────────────────────────────────────────────────────
 // Project Management
