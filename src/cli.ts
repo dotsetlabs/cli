@@ -18,6 +18,7 @@ import { registerSyncCommands } from './commands/sync.js';
 import { registerDriftCommand } from './commands/drift.js';
 import { registerProjectCommands } from './commands/project.js';
 import { registerWebhooksCommand } from './commands/webhooks.js';
+import { registerCICommand } from './commands/ci.js';
 
 const VERSION = '1.0.0';
 
@@ -56,7 +57,13 @@ registerDriftCommand(program);
 registerSecurityCommands(program);
 
 // ─────────────────────────────────────────────────────────────
-// Tunnels Module (Tachyon)
+// CI Module (Hadron)
+// ─────────────────────────────────────────────────────────────
+
+registerCICommand(program);
+
+// ─────────────────────────────────────────────────────────────
+// Tunnels Module (Tachyon) — Optional
 // ─────────────────────────────────────────────────────────────
 
 registerTunnelCommands(program);

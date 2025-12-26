@@ -55,6 +55,7 @@
         "@dotsetlabs/core": "file:../core",
         "@dotsetlabs/axion": "file:../axion",
         "@dotsetlabs/gluon": "file:../gluon",
+        "@dotsetlabs/hadron": "file:../hadron",
         "@dotsetlabs/tachyon": "file:../tachyon",
         "commander": "^12.1.0"
     },
