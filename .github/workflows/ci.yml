@@ -29,7 +29,6 @@ jobs:
           git clone --depth 1 https://github.com/dotsetlabs/core.git
           git clone --depth 1 https://github.com/dotsetlabs/axion.git
           git clone --depth 1 https://github.com/dotsetlabs/gluon.git
-          git clone --depth 1 https://github.com/dotsetlabs/tachyon.git
           git clone --depth 1 https://github.com/dotsetlabs/hadron.git
 
       - name: Build @dotsetlabs/core
@@ -42,10 +41,6 @@ jobs:
 
       - name: Build @dotsetlabs/gluon
         working-directory: ../gluon
-        run: npm install && npm run build
-
-      - name: Build @dotsetlabs/tachyon
-        working-directory: ../tachyon
         run: npm install && npm run build
 
       - name: Build @dotsetlabs/hadron

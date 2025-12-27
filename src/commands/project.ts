@@ -22,9 +22,6 @@ const API_URL = getApiUrl();
 interface Project {
     id: string;
     name: string;
-    axionEnabled: boolean;
-    gluonEnabled: boolean;
-    tachyonEnabled: boolean;
     createdAt: string;
 }
 
@@ -70,15 +67,7 @@ export function registerProjectCommands(program: Command) {
                 console.log(`\n${COLORS.bold}Projects${COLORS.reset}\n`);
 
                 for (const proj of projects) {
-                    const modules: string[] = [];
-                    if (proj.axionEnabled) modules.push('secrets');
-                    if (proj.gluonEnabled) modules.push('security');
-                    if (proj.tachyonEnabled) modules.push('tunnels');
-
                     console.log(`  ${colors.cyan(proj.name)} ${colors.dim(`(${proj.id})`)}`);
-                    if (modules.length > 0) {
-                        console.log(`    ${colors.dim('Modules:')} ${modules.join(', ')}`);
-                    }
                 }
 
                 console.log();
@@ -125,10 +114,9 @@ export function registerProjectCommands(program: Command) {
                 console.log();
 
                 // Modules
-                console.log(`${colors.dim('Modules:')}`);
-                console.log(`  Secrets (Axion):  ${proj.axionEnabled ? colors.green('enabled') : colors.dim('disabled')}`);
-                console.log(`  Security (Gluon): ${proj.gluonEnabled ? colors.green('enabled') : colors.dim('disabled')}`);
-                console.log(`  Tunnels (Tachyon): ${proj.tachyonEnabled ? colors.green('enabled') : colors.dim('disabled')}`);
+                console.log(`${colors.dim('Modules (all enabled):')}`);
+                console.log(`  Secrets (Axion):  ${colors.green('enabled')}`);
+                console.log(`  Security (Gluon): ${colors.green('enabled')}`);
 
                 // Stats
                 if (proj.stats) {

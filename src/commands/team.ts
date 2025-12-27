@@ -146,7 +146,6 @@ export function registerTeamCommands(program: Command) {
         .description('Update a team member\'s role or permissions')
         .option('--role <role>', 'New role: admin, member, readonly')
         .option('--scopes <scopes>', 'Comma-separated allowed scopes')
-        .option('--grant <permission>', 'Grant a custom permission (e.g., tachyon:create:public)')
         .option('--revoke <permission>', 'Revoke a custom permission')
         .option('--project <id>', 'Project ID (defaults to current project)')
         .action(async (email: string, options: {

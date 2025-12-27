@@ -1,7 +1,7 @@
 {
     "name": "@dotsetlabs/cli",
     "version": "1.0.1",
-    "description": "The dotset Developer Platform CLI. Secrets, security, and tunnels in one unified command.",
+    "description": "The dotset Developer Platform CLI. Secrets, security, and local CI in one unified command.",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -36,7 +36,7 @@
         "platform",
         "secrets",
         "security",
-        "tunnels"
+        "ci"
     ],
     "author": "dotset labs <hello@dotsetlabs.com>",
     "license": "MIT",
@@ -56,7 +56,6 @@
         "@dotsetlabs/axion": "file:../axion",
         "@dotsetlabs/gluon": "file:../gluon",
         "@dotsetlabs/hadron": "file:../hadron",
-        "@dotsetlabs/tachyon": "file:../tachyon",
         "commander": "^12.1.0"
     },
     "devDependencies": {

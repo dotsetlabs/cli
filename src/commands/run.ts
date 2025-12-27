@@ -262,7 +262,7 @@ async function runUnified(commandArgs: string[], options: RunOptions): Promise<v
 
             // Create telemetry collector
             const sessionId = generateSessionId();
-            telemetry = createCollector(gluonConfig.telemetry, sessionId);
+            telemetry = createCollector(gluonConfig.telemetry, gluonConfig.lagrangian, sessionId);
             telemetry.setScope(scope);
 
             // Create hook manager
@@ -397,7 +397,29 @@ function spawnMonitoredProcess(
 
         // Add session ID if monitoring
         if (telemetry) {
-            mergedEnv.GLUON_SESSION_ID = generateSessionId();
+            const sid = generateSessionId();
+            mergedEnv.GLUON_SESSION_ID = sid;
+
+            // Inject Cloud Credentials if linked
+            try {
+                const projectConfig = loadProjectConfig();
+                if (projectConfig?.cloudProjectId) {
+                    const { getAccessToken, getApiUrl } = require('@dotsetlabs/core');
+                    const token = getAccessToken();
+                    if (token) {
+                        mergedEnv.GLUON_CLOUD_PROJECT_ID = projectConfig.cloudProjectId;
+                        mergedEnv.GLUON_CLOUD_ACCESS_TOKEN = token;
+                        mergedEnv.GLUON_API_URL = getApiUrl();
+                    }
+                }
+            } catch {
+                // Ignore if not linked or error
+            }
+
+            // Inject Gluon auto-instrumentation for Lagrangian capture
+            // We use --import for Node.js 20+ ESM support
+            const currentOptions = process.env.NODE_OPTIONS || '';
+            mergedEnv.NODE_OPTIONS = `${currentOptions} --import @dotsetlabs/gluon/auto`.trim();
         }
 
         // Determine stdio mode

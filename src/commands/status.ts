@@ -41,10 +41,9 @@ export function registerStatusCommand(program: Command) {
                 console.log(`${colors.bold('Project:')} ${config.name}`);
                 console.log();
 
-                console.log(colors.bold('Modules:'));
-                console.log(`  Secrets (Axion):   ${config.products.axion ? colors.green('enabled') : colors.dim('disabled')}`);
-                console.log(`  Security (Gluon):  ${config.products.gluon ? colors.green('enabled') : colors.dim('disabled')}`);
-                console.log(`  Tunnels (Tachyon): ${config.products.tachyon ? colors.green('enabled') : colors.dim('disabled')}`);
+                console.log(colors.bold('Modules (all enabled):'));
+                console.log(`  Secrets (Axion):   ${colors.green('enabled')}`);
+                console.log(`  Security (Gluon):  ${colors.green('enabled')}`);
                 console.log();
 
                 if (config.cloudProjectId) {

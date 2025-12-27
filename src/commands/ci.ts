@@ -201,7 +201,7 @@ export function registerCICommand(program: Command) {
                         : createDefaultGluonConfig();
 
                     const sessionId = generateSessionId();
-                    telemetry = createCollector(gluonConfig.telemetry, sessionId);
+                    telemetry = createCollector(gluonConfig.telemetry, gluonConfig.lagrangian, sessionId);
 
                     const secretsMonitor = createSecretsMonitor(gluonConfig, telemetry);
 

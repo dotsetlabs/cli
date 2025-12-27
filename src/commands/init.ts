@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { createInterface } from 'node:readline';
 import {
     isProjectInitialized,
     loadProjectConfig,
@@ -7,7 +6,6 @@ import {
     linkToCloud,
     createCloudProject,
     isAuthenticated,
-    type ProductKey,
     COLORS,
     colors,
     success,
@@ -24,15 +22,9 @@ export function registerInitCommand(program: Command) {
         .description('Initialize a new dotset project')
         .option('--name <name>', 'Project name')
         .option('--cloud', 'Create cloud project immediately')
-        .option('--axion', 'Enable Axion (secrets)')
-        .option('--gluon', 'Enable Gluon (security)')
-        .option('--tachyon', 'Enable Tachyon (tunnels)')
         .action(async (options: {
             name?: string;
             cloud?: boolean;
-            axion?: boolean;
-            gluon?: boolean;
-            tachyon?: boolean;
         }) => {
             try {
                 if (isProjectInitialized()) {
@@ -46,31 +38,9 @@ export function registerInitCommand(program: Command) {
                 printBanner();
                 console.log();
 
-                // Determine products to enable
-                let products = {
-                    axion: options.axion ?? false,
-                    gluon: options.gluon ?? false,
-                    tachyon: options.tachyon ?? false,
-                };
-
-                // If no products specified via flags, prompt interactively
-                const anyProductFlagSet = options.axion || options.gluon || options.tachyon;
-                if (!anyProductFlagSet) {
-                    console.log(colors.bold('Select products to enable:'));
-                    console.log();
-                    products = await promptProductSelection();
-                    console.log();
-                }
-
-                // Ensure at least one product is enabled
-                if (!products.axion && !products.gluon && !products.tachyon) {
-                    error('At least one product must be enabled.');
-                }
-
-                // Initialize local project
+                // Initialize local project (all products enabled by default)
                 const config = initializeProject({
                     name: options.name,
-                    products,
                 });
 
                 success(`Initialized project: ${colors.cyan(config.name)}`);
@@ -78,11 +48,8 @@ export function registerInitCommand(program: Command) {
                 // Show enabled products
                 console.log();
                 console.log(colors.bold('Enabled products:'));
-                if (products.axion) console.log(`  ${colors.axion('●')} Axion - ${PRODUCT_DESCRIPTIONS.axion}`);
-                if (products.gluon) console.log(`  ${colors.gluon('●')} Gluon - ${PRODUCT_DESCRIPTIONS.gluon}`);
-                if (products.tachyon) console.log(`  ${colors.tachyon('●')} Tachyon - ${PRODUCT_DESCRIPTIONS.tachyon}`);
-
-
+                console.log(`  ${colors.axion('●')} Axion - ${PRODUCT_DESCRIPTIONS.axion}`);
+                console.log(`  ${colors.gluon('●')} Gluon - ${PRODUCT_DESCRIPTIONS.gluon}`);
 
                 // Create cloud project if requested
                 if (options.cloud) {
@@ -94,9 +61,6 @@ export function registerInitCommand(program: Command) {
                         try {
                             const cloudProject = await createCloudProject({
                                 name: config.name,
-                                axionEnabled: products.axion,
-                                gluonEnabled: products.gluon,
-                                tachyonEnabled: products.tachyon,
                             });
                             linkToCloud(cloudProject.id);
                             success(`Linked to cloud project: ${colors.cyan(cloudProject.id)}`);
@@ -109,15 +73,8 @@ export function registerInitCommand(program: Command) {
                 // Next steps
                 console.log();
                 console.log(colors.bold('Next steps:'));
-                if (products.axion) {
-                    console.log(`  ${colors.dim('1.')} Run ${colors.cyan('dotset secrets set KEY value')} to add secrets`);
-                }
-                if (products.gluon) {
-                    console.log(`  ${colors.dim(products.axion ? '2.' : '1.')} Run ${colors.cyan('dotset run -- npm start')} to monitor`);
-                }
-                if (products.tachyon) {
-                    console.log(`  ${colors.dim('•')} Run ${colors.cyan('dotset share 3000')} to create a tunnel`);
-                }
+                console.log(`  ${colors.dim('1.')} Run ${colors.cyan('dotset secrets set KEY value')} to add secrets`);
+                console.log(`  ${colors.dim('2.')} Run ${colors.cyan('dotset run -- npm start')} to monitor with protection`);
                 console.log();
                 console.log(colors.yellow('Important:'));
                 console.log(`  Add ${colors.bold('.dotset/')} to your .gitignore`);
@@ -127,33 +84,4 @@ export function registerInitCommand(program: Command) {
                 error((err as Error).message);
             }
         });
-}
-
-async function promptProductSelection(): Promise<{ axion: boolean; gluon: boolean; tachyon: boolean }> {
-    const rl = createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-
-    const ask = (question: string): Promise<boolean> => {
-        return new Promise((resolve) => {
-            rl.question(`${COLORS.cyan}?${COLORS.reset} ${question} (Y/n): `, (answer) => {
-                const normalized = answer.trim().toLowerCase();
-                resolve(normalized === '' || normalized === 'y' || normalized === 'yes');
-            });
-        });
-    };
-
-    console.log(`  ${colors.axion('Axion')} - ${PRODUCT_DESCRIPTIONS.axion}`);
-    const axion = await ask('  Enable Axion?');
-
-    console.log(`  ${colors.gluon('Gluon')} - ${PRODUCT_DESCRIPTIONS.gluon}`);
-    const gluon = await ask('  Enable Gluon?');
-
-    console.log(`  ${colors.tachyon('Tachyon')} - ${PRODUCT_DESCRIPTIONS.tachyon}`);
-    const tachyon = await ask('  Enable Tachyon?');
-
-    rl.close();
-
-    return { axion, gluon, tachyon };
 }

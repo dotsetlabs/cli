@@ -50,7 +50,6 @@ export function registerAuditCommands(program: Command) {
         .alias('ls')
         .description('List recent audit logs')
         .option('--limit <n>', 'Number of logs to show', '20')
-        .option('--source <source>', 'Filter by source (axion, gluon, hadron, tachyon, platform)')
         .option('--project <id>', 'Project ID (defaults to current project)')
         .action(async (options: { limit: string; source?: string; project?: string }) => {
             try {

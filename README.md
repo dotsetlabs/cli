@@ -1,14 +1,14 @@
 # @dotsetlabs/cli
 
 **The dotset Developer Platform.**  
-One CLI for secrets, security, and tunnels. The secure runtime for modern development.
+One CLI for secrets, security, local CI, and crash replay. The secure runtime for modern development.
 
 [![npm version](https://img.shields.io/npm/v/@dotsetlabs/cli)](https://www.npmjs.com/package/@dotsetlabs/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Why dotset?
 
-Stop juggling multiple security tools. `dotset` combines encrypted secrets management, runtime leak prevention, and zero-trust tunneling into a single developer experience.
+Stop juggling multiple security tools. `dotset` combines encrypted secrets management, runtime leak prevention, local CI, and crash replay into a single developer experience.
 
 ```bash
 npm install -g @dotsetlabs/cli
@@ -29,7 +29,7 @@ dotset run -- npm start
 This single command:
 - 🔐 **Injects secrets** directly from the cloud (zero-disk architecture)
 - 🛡️ **Monitors runtime** for secret leaks in logs (Gluon)
-- 📊 **Tracks network** calls to detect anomalies (Gluon)
+- ⏪ **Captures crashes** for instant local replay (Gluon Replay)
 
 ## Core Commands
 
@@ -37,6 +37,7 @@ This single command:
 |:--------|:------------|
 | `dotset init` | Initialize a new project |
 | `dotset run` | Run with secrets + monitoring |
+| `dotset replay` | Replay a captured crash locally |
 | `dotset login` | Authenticate with cloud |
 | `dotset logout` | Clear stored credentials |
 | `dotset status` | Show project status |
@@ -63,13 +64,10 @@ dotset scan                      # Static security analysis
 dotset sbom --static             # Generate SBOM
 ```
 
-### Tunnels (Tachyon)
+### Crash Replay (Gluon)
 
 ```bash
-dotset share 3000                # Share localhost
-dotset share 3000 --inspect      # With request inspector
-dotset share 3000 --public       # Allow unauthenticated access
-dotset tunnels                   # List active tunnels
+dotset replay <event-id> --cmd "node server.js"   # Replay a captured crash
 ```
 
 ### CI (Hadron)
@@ -96,14 +94,6 @@ dotset project list              # List cloud projects
 dotset project show <id>         # Show project details
 dotset project link <id>         # Link to cloud project
 dotset project unlink            # Unlink from cloud
-```
-
-### Webhooks
-
-```bash
-dotset webhooks list             # List captured webhooks
-dotset webhooks show <id>        # Show webhook details
-dotset webhooks replay <id>      # Replay a webhook
 ```
 
 ### Team Management
