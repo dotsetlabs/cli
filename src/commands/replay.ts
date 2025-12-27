@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { COLORS, error, warn, info, getAccessToken, getApiUrl, loadProjectConfig } from '@dotsetlabs/core';
 import {
     loadConfig as loadGluonConfig,
-    isInitialized as isGluonInitialized
+    isInitialized as isGluonInitialized,
 } from '@dotsetlabs/gluon/config';
 import { ManifestManager, GLOBAL_SERVICE } from '@dotsetlabs/axion/manifest';
 import { spawn } from 'node:child_process';

@@ -1,6 +1,6 @@
 {
     "name": "@dotsetlabs/cli",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "The dotset Developer Platform CLI. Secrets, security, and local CI in one unified command.",
     "type": "module",
     "main": "./dist/index.js",
